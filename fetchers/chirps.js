@@ -5,18 +5,20 @@ const Graph = gremlin.structure.Graph;
 
 const __ = gremlin.process.statics;
 
-const endpoint = 'wss://neptunedbcluster-ijdq0cuhfs8v.cluster-ro-c70rvttfi8ag.us-east-1.neptune.amazonaws.com:8182/gremlin';
-
 class ChirpFetcher extends Fetcher {
     constructor() {
         super("chirps");
+    }
+    fetch(event, env) {
+        console.log(JSON.stringify(env));
+        const endpoint = env.NEPTUNE_ENDPOINT;
+        const userId = event.id;
         this.dc = new DriverRemoteConnection(
             endpoint,
             { mimeType: "application/vnd.gremlin-v2.0+json" }
         );
-        console.log(`\nNeptune connection opened\n`)
-    }
-    fetch(userId) {
+        console.log(`\nNeptune connection opened\n`);
+
         const graph = new Graph();
         const g = graph.traversal().withRemote(this.dc);
 

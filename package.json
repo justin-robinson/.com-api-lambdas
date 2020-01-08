@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.599.0",
     "gremlin": "^3.4.4"
   }
 }
