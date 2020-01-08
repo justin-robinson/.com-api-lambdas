@@ -28,6 +28,7 @@ class NotificationFetcher extends Fetcher {
                     reject(e);
                 } else {
                     resolve(response.Items.map(item => {
+                        // can't rename attributes at query time in dynamo and we want the sort key to be an ID field for the api
                         item.id = item.SK;
                         delete item.SK;
                         return item;

@@ -10,7 +10,6 @@ class ChirpFetcher extends Fetcher {
         super("chirps");
     }
     fetch(event, env) {
-        console.log(JSON.stringify(env));
         const endpoint = env.NEPTUNE_ENDPOINT;
         const userId = event.id;
         this.dc = new DriverRemoteConnection(
@@ -22,6 +21,7 @@ class ChirpFetcher extends Fetcher {
         const graph = new Graph();
         const g = graph.traversal().withRemote(this.dc);
 
+        // get chirps of this user's friends
         return g.V(`user_${userId}`)
                     .both('friends_with')
                     .out('chirped')
