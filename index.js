@@ -2,6 +2,8 @@ const fetcherClasses = require("./fetchers/index");
 
 exports.handler = async function handler(event, context, callback) {
 
+    const identity = event.identity;
+
     // get all the data fetchers we need
     const fetchers = fetcherClasses.map(c => new c());
 
@@ -9,7 +11,7 @@ exports.handler = async function handler(event, context, callback) {
     const promises = fetchers.map((fetcher) => {
         fetcher.promise = new Promise(async (resolve, reject) => {
             try {
-                fetcher.data = await fetcher.fetch(event, process.env);
+                fetcher.data = await fetcher.fetch(identity.sub, process.env);
                 resolve();
             } catch (e) {
                 reject(e);

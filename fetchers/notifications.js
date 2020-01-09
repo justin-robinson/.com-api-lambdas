@@ -10,9 +10,7 @@ class NotificationFetcher extends Fetcher {
         this.client = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
         console.log(`\nDynamoDB client created\n`)
     }
-    fetch(event) {
-        const userId = event.id;
-
+    fetch(userId) {
         const params = {
             TableName: "test",
             KeyConditionExpression: "PK = :user and begins_with(SK, :type)",

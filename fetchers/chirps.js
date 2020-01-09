@@ -9,9 +9,8 @@ class ChirpFetcher extends Fetcher {
     constructor() {
         super("chirps");
     }
-    fetch(event, env) {
+    fetch(userId, env) {
         const endpoint = env.NEPTUNE_ENDPOINT;
-        const userId = event.id;
         this.dc = new DriverRemoteConnection(
             endpoint,
             { mimeType: "application/vnd.gremlin-v2.0+json" }
@@ -22,14 +21,14 @@ class ChirpFetcher extends Fetcher {
         const g = graph.traversal().withRemote(this.dc);
 
         // get chirps of this user's friends
-        return g.V(`user_${userId}`)
-                    .both('friends_with')
-                    .out('chirped')
-                    .project('id', 'prompt', 'response')
-                    .by(__.id())
-                    .by('prompt')
-                    .by('response')
-                    .toList();
+        return g.V(`${userId}`)
+                .both('friends_with')
+                .out('chirped')
+                .project('id', 'prompt', 'response')
+                .by(__.id())
+                .by('prompt')
+                .by('response')
+                .toList();
     }
     finally() {
         if (this.dc && typeof this.dc.close === 'function') {
