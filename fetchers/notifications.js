@@ -1,7 +1,5 @@
 const Fetcher = require('./_abstract');
-// Load the AWS SDK for Node.js
-var AWS = require('aws-sdk');
-// Set the region 
+const AWS = require('aws-sdk');
 AWS.config.update({ region: process.env.AWS_REGION });
 
 class NotificationFetcher extends Fetcher {

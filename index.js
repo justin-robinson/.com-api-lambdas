@@ -1,43 +1,37 @@
-const fetcherClasses = require("./fetchers/index");
+const Performance = require("./performance");
+const Metrics = require("./metrics");
 
-exports.handler = async function handler(event, context, callback) {
-
-    const identity = event.identity;
-
-    // get all the data fetchers we need
-    const fetchers = fetcherClasses.map(c => new c());
-
-    // execute all the data fetchers
-    const promises = fetchers.map((fetcher) => {
-        fetcher.promise = new Promise(async (resolve, reject) => {
-            try {
-                fetcher.data = await fetcher.fetch(identity.sub, process.env);
-                resolve();
-            } catch (e) {
-                reject(e);
-            }
-        });
-        return fetcher.promise;
-    });
-    
+exports.handler = async function (event, context, callback) {
+    const actionName = event.arguments.action;
+    if (!actionName) {
+        callback('You must define an action at "event.arguments.action"');
+        return;
+    }
+    const metrics = new Metrics("Lambda");
+    const p = new Performance();
     try {
-        // wait for them all the complete
-        await Promise.all(promises);
+        p.start(actionName);
+        const action = require(`./actions/${actionName}`);
 
-        // map the data to key/value pairs
-        const output = fetchers.reduce((out, fetcher) => {
-            out[fetcher.name] = fetcher.data;
-            return out;
-        }, {});
-
-        callback(null, output);
-    } catch (e) {
-        console.log(`ERROR: ${e}`)
-        callback(`Fetching Error: ${e}`);
-    } finally {
-        // let all the fetchers do any cleanup they need to do
-        for (let fetcher of fetchers) {
-            fetcher.finally()
+        if (!action) {
+            callback(`Unknown Action: ${actionName}`);
+        } else if (typeof action != 'function'){
+            callback(`Action should be a function: ${actionName}`);
+        } else {
+            const result = await action(event, context, metrics, actionName);
+            callback(null, result);
         }
+    } catch (e) {
+        callback(`Error from Action: ${actionName} : ${e}`);
+    } finally {
+        const executionTime = p.end(actionName);
+        metrics.add(
+            actionName,
+            executionTime,
+            [{Name: 'By Function Name', Value: context.functionName}],
+            'Milliseconds',
+            new Date()
+        )
+        metrics.publish();
     }
 }
